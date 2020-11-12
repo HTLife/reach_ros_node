@@ -41,10 +41,12 @@ from geometry_msgs.msg import TwistStamped
 from reach_ros_node.checksum_utils import check_nmea_checksum
 import reach_ros_node.parser
 
+from std_msgs.msg import String
 
 class RosNMEADriver(object):
     def __init__(self):
         # Our publishers
+        self.fix_quality = rospy.Publisher('gps_fix_quality', String, queue_size=1)
         self.fix_pub = rospy.Publisher('tcpfix', NavSatFix, queue_size=1)
         self.vel_pub = rospy.Publisher('tcpvel', TwistStamped, queue_size=1)
         self.timeref_pub = rospy.Publisher('tcptime', TimeReference, queue_size=1)
@@ -129,6 +131,8 @@ class RosNMEADriver(object):
         self.msg_fix.header.frame_id = self.frame_gps
         # Set what our fix status should be
         gps_qual = data['fix_type']
+        self.fix_quality.publish('frame_id:{}, fix_quality:{}'.format(self.msg_fix.header.frame_id, gps_qual))
+
         if gps_qual == 0:
             self.msg_fix.status.status = NavSatStatus.STATUS_NO_FIX
         elif gps_qual == 1:
